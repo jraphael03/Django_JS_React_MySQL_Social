@@ -24,4 +24,9 @@ source (venv name)/bin/activate
 
 django-admin startproject tweetme2 .    # Period at the end creates in current directory instead of making a new one
 
-file saveworkspace as 
+file saveworkspace as (name).code-workspace
+
+Now you can close VSC and open in terminal using
+open (name).code-workspace
+
+You can also see and compare git changes with you saved workspace file to see changes
