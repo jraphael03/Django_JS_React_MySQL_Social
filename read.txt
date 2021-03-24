@@ -1,0 +1,27 @@
+Open terminal
+
+Cd into folder that holds all of your website projects or wherever you want the project to be placed
+
+Mkdir ( folder name )
+
+cd ( folder name )
+
+Start up a virtual environment
+
+pip3 install virtualenv
+
+Initialize virtual environment
+
+python3 -m venv ( venv name )
+
+Remaining in main folder Activate virtual env (Inside your virtual env there should be no downloads pip freeze to check)
+
+On Windows
+(venv name)/Scripts/activate
+On Mac
+source (venv name)/bin/activate
+
+
+django-admin startproject tweetme2 .    # Period at the end creates in current directory instead of making a new one
+
+file saveworkspace as 
