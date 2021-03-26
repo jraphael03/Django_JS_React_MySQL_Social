@@ -30,3 +30,6 @@ Now you can close VSC and open in terminal using
 open (name).code-workspace
 
 You can also see and compare git changes with you saved workspace file to see changes
+
+python3 manage.py startapp tweets
+

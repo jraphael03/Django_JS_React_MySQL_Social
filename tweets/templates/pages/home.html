@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block head_title %}
+New Social App
+{% endblock head_title %}
+
+{% block content %}
+<div class="row text-center">
+    <div class="col">
+        <h1>Welcome to Tweetme</h1>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-4 mx-auto col-10">
+        <form class="form" id="tweet-create-form" method="POST" action="/create-tweet">    <!-- Action is the endpoint, that is where we want to send the data (found urls.py) -->
+            {% csrf_token %}
+            <div class="d-none alert alert-danger" id="tweet-create-form-error"></div>  <!-- Error Div -->
+            <input type="hidden" value="/" name="next" />           <!-- input type redirected to the homepage -->
+            <textarea required="required" class="form-control" name="content" placeholder="What's happening?" ></textarea>
+            <button type="submit" class="btn btn-primary">Tweet</button>
+        </form>
+    </div>
+</div>
+
+<div class="row" id="tweets">
+    Loading...
+</div>
+
+<script>
+
+// FUNCTION FOR TWEET ERROR
+function handleTweetFormError(msg, display){
+    var myErrorDiv = document.getElementById("tweet-create-form-error")
+    if (display === true) {
+        // show error
+        myErrorDiv.setAttribute("class", "d-block alert alert-danger")
+        myErrorDiv.innerText = msg
+    } else {
+        // hide error
+        myErrorDiv.setAttribute("class", "d-none alert alert-danger")
+    }
+}
+
+// ADD AN EVENT LISTENER FOR FORM SUBMISSION
+function handleTweetCreateFormDidSumbit(event) {
+    event.preventDefault()
+    const myForm = event.target
+    const myFormData = new FormData(myForm)
+    const url = myForm.getAttribute("action")
+    const method = myForm.getAttribute("method")
+    const xhr = new XMLHttpRequest()
+    const responseType = "json"
+    xhr.responseType = responseType
+    xhr.open(method, url)
+    // setRequestHeader so Django can determine if response is Ajax
+    xhr.setRequestHeader("HTTP_X_REQUESTED_WITH", "XMLHttpRequest")
+    xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+
+    xhr.onload = function() {
+        if (xhr.status === 201) {
+            handleTweetFormError("", false)
+            const newTweetJson = xhr.response
+            const newTweetElement = formatTweetElement(newTweetJson)
+            console.log(newTweetElement)
+            // Upload at the top of the page
+            const ogHtml = tweetsContainerElement.innerHTML
+            tweetsContainerElement.innerHTML = newTweetElement + ogHtml
+            // Clear Form after submitting
+            myForm.reset()
+        } else if (xhr.status === 400) {      // Error coming from out views.py
+            const errorJson = xhr.response
+            console.log(errorJson)
+            const contentError = errorJson.content
+            let contentErrorMsg;
+            if (contentError) {
+                contentErrorMsg = contentError[0]
+                if (contentErrorMsg) {
+                    handleTweetFormError(contentErrorMsg, true)
+                } else {
+                    alert("An error occured. Please try again.")
+                }
+            } else {
+                alert("An error occured. Please try again.")
+            }   
+        } else if (xhr.status === 500) {    // Error for server side
+            alert("There was a server error, please try again.")
+        }
+        
+    }
+    xhr.onerror = function() {      // Error for JS
+        alert("An error occurred. Please try again later.")
+    }
+    xhr.send(myFormData)
+}
+
+
+    // console.log(myForm.getAttribute("action"));  // Use to getAttribute for new posted items
+    // SEEING WHAT THE DATA INSIDE IS
+    // for (var myItem of myFormData.entries()){
+    //     console.log(myItem);    // loop through the items in the FormData
+    // }
+    //console.log(event)   // log event to see info and use
+
+const tweetCreateFormEl = document.getElementById("tweet-create-form")
+tweetCreateFormEl.addEventListener("submit", handleTweetCreateFormDidSumbit)
+
+
+// PLACE TWEETS ON PAGE
+const tweetsContainerElement = document.getElementById('tweets')
+
+// GET TWEETS FROM DATABASE
+const loadTweets = function(tweetsElement){
+    const xhr = new XMLHttpRequest()    // xhr = SomeClass()
+    const method = 'GET'
+    const url = '/tweets'       // The url that will be returning JSON data
+    const responseType = "json"
+
+    xhr.responseType = responseType     // Set xhr's reponseType to json above
+    xhr.open(method, url)               // Open the method using method and url, (typed out above)
+    xhr.onload = function(){
+        //console.log(xhr.response)
+        const serverResponse = xhr.response         // Grab the response from xhr method above
+        const listedItems = serverResponse.response
+        var finalTweetStr = ""
+        var i;
+
+        // Loop through data we are getting
+        for(i=0; i<listedItems.length; i++){
+            console.log(i)
+            console.log(listedItems[i]) 
+            var tweetObj = listedItems[i]
+            var currentItem = formatTweetElement(tweetObj)
+            finalTweetStr += currentItem        // Append finalTweetStr to currentItem
+        }
+        tweetsElement.innerHTML = finalTweetStr;
+
+
+    }
+    xhr.send();                         // Trigger request
+}
+loadTweets(tweetsContainerElement)
+
+
+
+
+// OnClick feature for the Like button
+function handleDidLike (tweet_id, currentCount) {
+    console.log(tweet_id, currentCount)
+    return
+}
+
+// Button for likes
+function LikeBtn(tweet) {   // Pull tweet from formatTweetElement
+    return "<button class='btn btn-primary btn-small' onclick=handleDidLike(" + 
+    tweet.id + "," + tweet.likes + ")>" + tweet.likes + " Like</button>"
+}
+
+function formatTweetElement(tweet){                 // .mx-auto class for horizontally centering
+    var formattedTweet = "<div class='col-12 col-md-10 mx-auto border rounded py-3 mb-4 tweet' id='tweet-" + tweet.id 
+    + " ' ><p>" + tweet.content 
+        + "</p><div class='btn-group'>" + LikeBtn(tweet) +
+        "</div></div>" 
+    return  formattedTweet
+}
+
+
+
+
+</script>
+
+
+{% endblock content %}
+
