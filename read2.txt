@@ -1,0 +1,12 @@
+obj.likes.add()
+obj.likes.remove()
+obj.likes.set() # requires a queryset
+
+TweetLike.objects(user=, tweet=)
+
+
+
+obj.likes.add(me)
+obj.likes.all()
+obj.likes.set(empty_users)
+obj.likes.all()
