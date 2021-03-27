@@ -87,6 +87,9 @@ function handleTweetCreateFormDidSumbit(event) {
         }   else if (xhr.status === 401) {
             alert("You must login!")
             window.location.href = "/login"     // Alerts of login when box is closed redirect to login
+        } else if (xhr.status === 403) {
+            alert("You must login!")
+            window.location.href = "/login"     // Alerts of login when box is closed redirect to login
         } 
         else if (xhr.status === 500) {    // Error for server side
             alert("There was a server error, please try again.")

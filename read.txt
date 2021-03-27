@@ -39,4 +39,13 @@ inside settings.py installed apps add
     'rest_framework',
     #internal
 
-    
+To add new rest_frameworks go into setting and create a space EX:
+REST_FRAMEWORK = {
+    'DEFAULT AUTHENTICATION CLASSES': [
+        'rest_framework.authentication.SessionAuthentication'
+        ],
+        'DEFAULT_RENDERER_CLASSES': [
+            'rest_framework.renderers.JSONRenderer',
+            'rest_framework.renderers.BrowsableAPIRenderer',
+        ]
+}

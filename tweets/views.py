@@ -5,8 +5,10 @@ from django.shortcuts import render, redirect
 from django.utils.http import is_safe_url
 
 # REST FRAMEWORK IMPORTS
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 from .forms import TweetForm
 from .models import Tweet
@@ -24,7 +26,9 @@ def home_view(request, *args, **kwargs):
 # DJANGORESTFRAMEWORKS USE SERIALIZERS.PY FILE
 
 # CREATING (POST) FOR TWEET USING DJANGORESTFRAMEWORK
-@api_view(['POST'])     # http method the client == POST
+@api_view(['POST'])                     # http method the client == POST
+@authentication_classes([SessionAuthentication])    # only SessionAuthentication is allowed
+@permission_classes([IsAuthenticated])   # If the user is authenticated they have access to this is not they do not
 def tweet_create_view(request, *args, **kwargs):
     serializer = TweetSerializer(data = request.POST)
     if serializer.is_valid(raise_exception=True):
@@ -44,6 +48,24 @@ def tweet_detail_view(request, tweet_id, *args, **kwargs):
     return Response(serializer.data)
 
 
+# DELETING TWEET FROM DB USING DJANGORESTFRAMEWORK
+@api_view(['DELETE', 'POST'])
+# CHECK PERMISSION THAT THE USER CAN DELETE SELECTED TWEET
+@permission_classes([IsAuthenticated])   # If the user is authenticated they have access to this is not they do not
+def tweet_delete_view(request, tweet_id, *args, **kwargs):
+    qs = Tweet.objects.filter(id=tweet_id)
+    # RESPONSE IF USER CANNOT DELETE
+    if not qs.exists():
+        return Response({}, status=404)
+    qs = qs.filter(user=request.user)
+    if not qs.exists():
+        return Response({"message": "You cannot delete this tweet"}, status=401)
+    # RESPONSE FOR SUCCESSFUL DELETE
+    obj = qs.first()
+    obj.delete()
+    return Response({"message": "Tweet removed"}, status=200)
+
+
 # GETTING TWEETS FROM DB USING DJANGORESTFRAMEWORK
 @api_view(['GET'])
 def tweet_list_view(request, *args, **kwargs):
@@ -51,6 +73,10 @@ def tweet_list_view(request, *args, **kwargs):
     serializer = TweetSerializer(qs, many=True)
 
     return Response(serializer.data)
+
+
+
+
 
 
 # PURE DJANGO USES FORMS.PY FILE
