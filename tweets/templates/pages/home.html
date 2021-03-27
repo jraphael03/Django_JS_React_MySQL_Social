@@ -57,6 +57,7 @@ function handleTweetCreateFormDidSumbit(event) {
     xhr.setRequestHeader("HTTP_X_REQUESTED_WITH", "XMLHttpRequest")
     xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
 
+    // ERROR HANDLING
     xhr.onload = function() {
         if (xhr.status === 201) {
             handleTweetFormError("", false)
@@ -82,18 +83,20 @@ function handleTweetCreateFormDidSumbit(event) {
                 }
             } else {
                 alert("An error occured. Please try again.")
-            }   
-        } else if (xhr.status === 500) {    // Error for server side
+            }
+        }   else if (xhr.status === 401) {
+            alert("You must login!")
+            window.location.href = "/login"     // Alerts of login when box is closed redirect to login
+        } 
+        else if (xhr.status === 500) {    // Error for server side
             alert("There was a server error, please try again.")
         }
-        
     }
     xhr.onerror = function() {      // Error for JS
         alert("An error occurred. Please try again later.")
     }
     xhr.send(myFormData)
 }
-
 
     // console.log(myForm.getAttribute("action"));  // Use to getAttribute for new posted items
     // SEEING WHAT THE DATA INSIDE IS
@@ -121,7 +124,7 @@ const loadTweets = function(tweetsElement){
     xhr.onload = function(){
         //console.log(xhr.response)
         const serverResponse = xhr.response         // Grab the response from xhr method above
-        const listedItems = serverResponse.response
+        const listedItems = serverResponse
         var finalTweetStr = ""
         var i;
 

@@ -4,26 +4,78 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.utils.http import is_safe_url
 
+# REST FRAMEWORK IMPORTS
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
 from .forms import TweetForm
 from .models import Tweet
+from .serializers import TweetSerializer
 
 ALLOWED_HOSTS = settings.ALLOWED_HOSTS  # Allows host grabbed from settings.py
 
 # Create your views here.
 def home_view(request, *args, **kwargs):
+    #print(request.user) # request comes with user
     #print(args, kwargs)
     #return HttpResponse("<h1>Hello World</h1>")
     return render(request, "pages/home.html", context={}, status=200)
 
+# DJANGORESTFRAMEWORKS USE SERIALIZERS.PY FILE
+
+# CREATING (POST) FOR TWEET USING DJANGORESTFRAMEWORK
+@api_view(['POST'])     # http method the client == POST
+def tweet_create_view(request, *args, **kwargs):
+    serializer = TweetSerializer(data = request.POST)
+    if serializer.is_valid(raise_exception=True):
+        obj = serializer.save(user = request.user)
+        return Response(serializer.data, status=201)                # Import response above no longer need JsonResponse
+    return Response({}, status=400)
+
+
+# USING ID TO GET TWEETS FROM DB USING DJANGORESTFRAMEWORK
+@api_view(['GET'])
+def tweet_detail_view(request, tweet_id, *args, **kwargs):
+    qs = Tweet.objects.filter(id=tweet_id)
+    if not qs.exists():
+        return Response({}, status=404)
+    obj = qs.first()
+    serializer = TweetSerializer(obj)   # Not pulling many only obj we are pulling id
+    return Response(serializer.data)
+
+
+# GETTING TWEETS FROM DB USING DJANGORESTFRAMEWORK
+@api_view(['GET'])
+def tweet_list_view(request, *args, **kwargs):
+    qs = Tweet.objects.all()
+    serializer = TweetSerializer(qs, many=True)
+
+    return Response(serializer.data)
+
+
+# PURE DJANGO USES FORMS.PY FILE
 
 # VIEW FOR CREATING (POST) A TWEET 
-def tweet_create_view(request, *args, **kwargs):
+def tweet_create_view_pure_django(request, *args, **kwargs):
+    """
+    REST API CREATE VIE -> Django Rest Framework
+    """
+    # Check for authenticated user
+    user = request.user
+    if not request.user.is_authenticated:
+        user = None
+        if request.is_ajax():
+            return JsonResponse({}, status=401)
+        return redirect('settings.LOGIN_URL')
+
     #print("ajax", request.is_ajax())
+    # POST TWEET FROM Home.html FORM
     form = TweetForm(request.POST or None)
     next_url = request.POST.get("next") or None     # "next" comes from form on home.html
     if form.is_valid():                         # if form is valid save, if it is not valid the page will render that
         obj = form.save(commit = False)
         # do other form related logic
+        obj.user = user
         obj.save()
         if request.is_ajax():
             return JsonResponse(obj.serialize(), status=201) # 201 == created items     serialize comes from models
@@ -40,13 +92,9 @@ def tweet_create_view(request, *args, **kwargs):
     return render(request, 'components/form.html', context={"form": form})     # Pass form through the context
 
 
-        
-    
-
-
 
 # GETTING TWEETS FROM DB
-def tweet_list_view(request, *args, **kwargs):
+def tweet_list_view_pure_django(request, *args, **kwargs):
     """ REST API VIEW, CONSUMED BY JS, RETURN JSON DATA
     """
     qs = Tweet.objects.all()    # Grabbing all Tweet objects from the Tweet Model
@@ -62,7 +110,7 @@ def tweet_list_view(request, *args, **kwargs):
 
 
 # USING ID IN URL TO GET ITEM FROM THE DB
-def tweet_detail_view(request, tweet_id, *args, **kwargs):
+def tweet_detail_view_pure_django(request, tweet_id, *args, **kwargs):
     """ REST API VIEW, CONSUMED BY JS, RETURN JSON DATA
     """
     data = {

@@ -26,7 +26,8 @@ SECRET_KEY = '9h9!v)c*9u+*6-0=g%4g%#ke7e^gdlc1#)o5v@7f2%f*n_9z_p'
 DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']   # Number website is Hosted on, and domain name of the website EX: mydomain.com
-
+LOGIN_URL = "/login"
+MAX_TWEET_LENGTH = 240
 
 # Application definition
 
@@ -37,7 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #third-party
+    'rest_framework',
+    #internal
     'tweets',
+
 ]
 
 MIDDLEWARE = [

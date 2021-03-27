@@ -1,5 +1,8 @@
 from django.db import models
+from django.conf import settings
 import random;
+
+User = settings.AUTH_USER_MODEL # REFERENCES BUILT IN DJANGO FEATURE FOR USER MODEL
 
 # When you change this file run 
 # python3 manage.py make migrations
@@ -8,6 +11,8 @@ import random;
 class Tweet(models.Model):
     # Maps to SQL Data
     # id = models.AutoField(primary_key=true)   (hidden field does not need to be added)
+    # When running makemigration if there are items in the db user needs to be supplied a default 
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  # Foreign key so many users can have many tweets, on_delete=models.CASCADE   deletes all tweets when a User is deleted    # (keep storage of tweets by setting null=True on_delete=models.SET_NULL)
     content = models.TextField(blank=True, null=True)                          # blank means it's not required in Django, and null means it's not required in db
     image = models.FileField(upload_to='images/', blank=True, null=True)       # In db there will be a path to file we uploaded 
 

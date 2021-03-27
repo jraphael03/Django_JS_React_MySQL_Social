@@ -33,3 +33,10 @@ You can also see and compare git changes with you saved workspace file to see ch
 
 python3 manage.py startapp tweets
 
+pip3 install djangorestframework
+inside settings.py installed apps add
+    #third-party
+    'rest_framework',
+    #internal
+
+    
